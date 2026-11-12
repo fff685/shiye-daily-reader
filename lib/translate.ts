@@ -16,7 +16,7 @@ const SYSTEM_PROMPT = `你是一位资深文学译者，负责把英文文学作
 6. 输出必须是合法 JSON，不要使用 Markdown 代码块。`;
 
 const DEEPSEEK_URL = "https://api.deepseek.com/chat/completions";
-const MAX_CHARS_PER_REQUEST = 4200;
+const MAX_CHARS_PER_REQUEST = 3000;
 
 function splitIntoChunks(paragraphs: string[]): string[][] {
   const chunks: string[][] = [];
@@ -66,7 +66,7 @@ async function translateChunk(
       max_tokens: 8192,
       stream: false,
     }),
-    signal: AbortSignal.timeout(60000),
+    signal: AbortSignal.timeout(45000),
   });
 
   if (!response.ok) {
@@ -129,9 +129,11 @@ export async function translateParagraphs(
     );
   }
 
-  const result: string[] = [];
-  for (const chunk of splitIntoChunks(paragraphs)) {
-    result.push(...(await translateChunk(chunk, title, apiKey)));
-  }
-  return result;
+  const chunks = splitIntoChunks(paragraphs);
+  // Run chunks in parallel so a full 15-minute reading segment stays inside
+  // Vercel's 60 second serverless limit.
+  const translatedChunks = await Promise.all(
+    chunks.map((chunk) => translateChunk(chunk, title, apiKey)),
+  );
+  return translatedChunks.flat();
 }
