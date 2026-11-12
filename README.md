@@ -21,6 +21,7 @@
 - React 19 + TypeScript + Tailwind CSS 4
 - Prisma 6 + Neon PostgreSQL（当前使用）
 - `@prisma/adapter-neon` 通过 WebSocket 连接，适配 Vercel Serverless
+- Cloudflare Pages 代理（国内网络可访问入口）
 - SQLite 仍保留为可选的本地离线开发模式
 - bcryptjs + jose（邮箱密码登录、HttpOnly Cookie 会话）
 - OpenCC（中文公版书繁转简）
@@ -54,10 +55,18 @@ npm run dev
 
 ## 线上地址
 
-- **Vercel**：<https://shiye-daily-reader.vercel.app>
+- **国内网络可访问入口**：<https://shiye-proxy.pages.dev>
+- **Vercel 源站**：<https://shiye-daily-reader.vercel.app>
+- **GitHub 源码**：<https://github.com/fff685/shiye-daily-reader>
 - 数据库：Neon PostgreSQL，独立数据库 `shiye`
 
-> 部分中国大陆网络可能无法直连 Vercel 的默认域名。如果打不开，可以使用代理/VPN，或在 Vercel 绑定一个可访问的自定义域名。应用本身和数据库均已部署完成。
+访问链路：
+
+```text
+浏览器 → Cloudflare Pages 代理 → Vercel → Neon PostgreSQL
+```
+
+Cloudflare Pages 代理的代码在 `cloudflare/pages-proxy/`，它会把请求转发到 Vercel，并处理 Origin / 重定向，以兼容 Next.js Server Actions。Vercel 原域名在当前网络下不可直连，但 Pages 入口可正常使用。
 
 ## 生产部署（Vercel + Neon）
 

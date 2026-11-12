@@ -71,7 +71,8 @@
 - [x] 移动端布局
 - [x] Neon 生产数据库建表、完整书目导入、热门正文预取
 - [x] Vercel 生产部署（https://shiye-daily-reader.vercel.app）
-- [ ] 从中国大陆网络直连 Vercel 默认域名可能失败，需要自定义域名或代理
+- [x] Cloudflare Pages 国内可访问代理（https://shiye-proxy.pages.dev）
+- [x] GitHub 独立仓库（https://github.com/fff685/shiye-daily-reader）
 
 ## 6. 仍需确认 / 输入
 
