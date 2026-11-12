@@ -14,6 +14,7 @@ export async function getPopularBooks(
 ): Promise<BookSummary[]> {
   return prisma.book.findMany({
     where: {
+      ownerId: null,
       popularity: { gt: 0 },
       ...(excludeIds.length ? { id: { notIn: excludeIds } } : {}),
     },
@@ -68,6 +69,7 @@ export async function getRecommendations(
 
   const candidates = await prisma.book.findMany({
     where: {
+      ownerId: null,
       id: { notIn: Array.from(readIds) },
       ...(topTags.length
         ? {

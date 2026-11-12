@@ -14,6 +14,7 @@ export const bookSummarySelect = {
   charCount: true,
   issued: true,
   sourceUrl: true,
+  ownerId: true,
   createdAt: true,
 } satisfies Prisma.BookSelect;
 

@@ -17,8 +17,14 @@ import { TAG_OPTIONS } from "@/lib/tags";
 export default async function HomePage() {
   const user = await getCurrentUser();
 
-  const [latestProgress, stats, recommendations, popular, chineseClassics] =
-    await Promise.all([
+  const [
+    latestProgress,
+    stats,
+    recommendations,
+    popular,
+    chineseClassics,
+    modernChinese,
+  ] = await Promise.all([
       user
         ? prisma.readingProgress.findFirst({
             where: { userId: user.id, status: "reading" },
@@ -30,7 +36,17 @@ export default async function HomePage() {
       getRecommendations(user?.id, 6),
       getPopularBooks(5),
       prisma.book.findMany({
-        where: { language: "zh", popularity: { gt: 0 } },
+        where: { ownerId: null, language: "zh", popularity: { gt: 0 } },
+        select: bookSummarySelect,
+        orderBy: [{ popularity: "desc" }, { title: "asc" }],
+        take: 5,
+      }),
+      prisma.book.findMany({
+        where: {
+          ownerId: null,
+          language: "zh",
+          tags: { contains: '"现代文学"' },
+        },
         select: bookSummarySelect,
         orderBy: [{ popularity: "desc" }, { title: "asc" }],
         take: 5,
@@ -284,6 +300,29 @@ export default async function HomePage() {
             </div>
             <div className="book-grid book-grid-five">
               {chineseClassics.map((book) => (
+                <BookCard key={book.id} book={book} compact />
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        {modernChinese.length ? (
+          <section className="section">
+            <div className="section-head">
+              <div>
+                <p className="eyebrow">MODERN CHINESE</p>
+                <h2>近现代中文作品</h2>
+                <p>鲁迅的呐喊、彷徨、野草、朝花夕拾……在短篇里重新听见那个时代。</p>
+              </div>
+              <Link
+                href="/discover?tag=%E7%8E%B0%E4%BB%A3%E6%96%87%E5%AD%A6"
+                className="section-link"
+              >
+                更多近现代 →
+              </Link>
+            </div>
+            <div className="book-grid book-grid-five">
+              {modernChinese.map((book) => (
                 <BookCard key={book.id} book={book} compact />
               ))}
             </div>

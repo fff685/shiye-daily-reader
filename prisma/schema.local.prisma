@@ -19,8 +19,9 @@ model User {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  progresses ReadingProgress[]
-  sessions   ReadingSession[]
+  progresses    ReadingProgress[]
+  sessions      ReadingSession[]
+  importedBooks Book[]            @relation("BookOwner")
 }
 
 model Book {
@@ -38,15 +39,34 @@ model Book {
   content     String?
   issued      String?
   sourceUrl   String?
+  ownerId     String?
   createdAt   DateTime @default(now())
 
-  progresses ReadingProgress[]
-  sessions   ReadingSession[]
+  owner        User?             @relation("BookOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  progresses   ReadingProgress[]
+  sessions     ReadingSession[]
+  translations Translation[]
 
   @@unique([source, sourceId])
   @@index([language])
   @@index([popularity])
   @@index([title])
+  @@index([ownerId])
+}
+
+model Translation {
+  id          String   @id @default(cuid())
+  bookId      String
+  startOffset Int
+  endOffset   Int
+  targetLang  String   @default("zh")
+  paragraphs  String
+  createdAt   DateTime @default(now())
+
+  book Book @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@unique([bookId, startOffset, endOffset, targetLang])
+  @@index([bookId])
 }
 
 model ReadingProgress {

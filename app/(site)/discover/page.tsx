@@ -42,6 +42,7 @@ export default async function DiscoverPage({
   const requestedPage = Math.max(1, Number(params.page ?? "1") || 1);
 
   const where: Prisma.BookWhereInput = {
+    ownerId: null,
     AND: [
       q
         ? {

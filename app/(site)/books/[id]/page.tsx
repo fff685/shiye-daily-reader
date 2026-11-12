@@ -22,9 +22,12 @@ export async function generateMetadata({
   const { id } = await params;
   const book = await prisma.book.findUnique({
     where: { id },
-    select: { title: true, author: true },
+    select: { title: true, author: true, ownerId: true },
   });
   if (!book) return { title: "未找到书目" };
+  if (book.ownerId) {
+    return { title: "私人书籍", robots: { index: false, follow: false } };
+  }
   return {
     title: book.title,
     description: `${book.title}${book.author ? ` · ${formatAuthor(book.author)}` : ""}，在拾页按每天十几分钟慢慢读完。`,
@@ -60,11 +63,13 @@ export default async function BookDetailPage({
   ]);
 
   if (!book) notFound();
+  if (book.ownerId && book.ownerId !== user?.id) notFound();
 
   const tags = parseTags(book.tags);
   const related = tags.length
     ? await prisma.book.findMany({
         where: {
+          ownerId: null,
           id: { not: book.id },
           language: book.language,
           OR: tags
@@ -211,11 +216,17 @@ export default async function BookDetailPage({
           </div>
 
           <div className="source-note">
-            书源：Project Gutenberg · 公版作品。正文在第一次打开时从书源取回并缓存；若遇到取回失败，可以稍后重试，或换一本阅读。
-            <br />
-            <a href={sourceUrl} target="_blank" rel="noreferrer">
-              查看原始书目 →
-            </a>
+            {book.source === "upload" ? (
+              <>私人导入 · 仅自己可见。请确认你拥有这份文件的使用权；内容不会进入公共书库。</>
+            ) : (
+              <>
+                书源：Project Gutenberg · 公版作品。正文在第一次打开时从书源取回并缓存；若遇到取回失败，可以稍后重试，或换一本阅读。
+                <br />
+                <a href={sourceUrl} target="_blank" rel="noreferrer">
+                  查看原始书目 →
+                </a>
+              </>
+            )}
           </div>
 
           {related.length ? (

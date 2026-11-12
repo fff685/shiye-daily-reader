@@ -1279,6 +1279,40 @@ button {
   align-items: start;
 }
 
+.import-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(280px, 0.7fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.import-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 22px;
+}
+
+.import-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.import-file {
+  height: auto;
+  padding: 10px 12px;
+  font-size: 12px;
+}
+
+.import-hint {
+  display: block;
+  margin-top: 7px;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.7;
+}
+
 .profile-card {
   padding: 24px;
 }
@@ -1602,6 +1636,71 @@ button {
   margin: 0;
 }
 
+.reader-modes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 14px;
+}
+
+.reader-modes button {
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.8);
+  font-size: 11px;
+  transition: 160ms ease;
+}
+
+.reader-modes button:hover {
+  border-color: var(--border-strong);
+  color: var(--primary);
+}
+
+.reader-modes button[data-active="true"] {
+  border-color: #cddffd;
+  color: var(--primary-strong);
+  background: var(--primary-soft);
+  font-weight: 600;
+}
+
+.reader-modes button:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
+.reader-mode-status {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.translation-note {
+  margin: 0 0 24px;
+  padding: 9px 12px;
+  border: 1px solid #e3ecf9;
+  border-radius: 9px;
+  color: #7a8da5;
+  background: #f9fbff;
+  font-size: 10px;
+  line-height: 1.6;
+}
+
+.reader-translation {
+  margin-top: -0.75em !important;
+  padding-left: 13px;
+  border-left: 2px solid #d9e6f8;
+  color: #61758d;
+  font-size: 0.92em;
+  line-height: 1.95;
+}
+
+.reader-translation-only {
+  margin-bottom: 1.15em !important;
+}
+
 .reader-content {
   font-family: var(--font-reading);
   font-size: var(--reader-font-size, 19px);
@@ -1880,6 +1979,10 @@ button {
 }
 
 @media (max-width: 860px) {
+  .import-layout {
+    grid-template-columns: 1fr;
+  }
+
   .hero {
     grid-template-columns: 1fr;
     gap: 38px;
@@ -2000,6 +2103,10 @@ button {
     align-items: flex-start;
     flex-direction: column;
     padding: 28px 24px;
+  }
+
+  .import-grid {
+    grid-template-columns: 1fr;
   }
 
   .book-detail {

@@ -52,10 +52,11 @@ export async function startReadingAction(formData: FormData): Promise<void> {
 
   const book = await prisma.book.findUnique({
     where: { id: bookId },
-    select: { id: true },
+    select: { id: true, ownerId: true },
   });
 
   if (!book) redirect("/discover");
+  if (book.ownerId && book.ownerId !== user.id) redirect("/discover");
 
   await prisma.$transaction([
     prisma.readingProgress.upsert({

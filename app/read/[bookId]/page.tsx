@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { Reader } from "@/components/reader";
 import { requireUser } from "@/lib/auth";
 import { ensureBookContent } from "@/lib/books";
@@ -8,6 +8,7 @@ import { prisma } from "@/lib/prisma";
 import { getReadingSegment } from "@/lib/reader";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
 export const metadata: Metadata = {
   title: "阅读",
@@ -27,6 +28,7 @@ export default async function ReadPage({
   });
 
   if (!progress) redirect(`/books/${bookId}`);
+  if (progress.book.ownerId && progress.book.ownerId !== user.id) notFound();
 
   let content = progress.book.content;
   if (!content) {
@@ -71,6 +73,35 @@ export default async function ReadPage({
     progress.book.language,
   );
 
+  const cachedTranslation =
+    progress.book.language === "en" && segment.text
+      ? await prisma.translation.findUnique({
+          where: {
+            bookId_startOffset_endOffset_targetLang: {
+              bookId,
+              startOffset: segment.start,
+              endOffset: segment.end,
+              targetLang: "zh",
+            },
+          },
+          select: { paragraphs: true },
+        })
+      : null;
+
+  let initialTranslation: string[] | null = null;
+  if (cachedTranslation) {
+    try {
+      const parsed = JSON.parse(cachedTranslation.paragraphs) as unknown;
+      if (Array.isArray(parsed)) {
+        initialTranslation = parsed.filter(
+          (item): item is string => typeof item === "string",
+        );
+      }
+    } catch {
+      initialTranslation = null;
+    }
+  }
+
   return (
     <Reader
       bookId={bookId}
@@ -80,6 +111,7 @@ export default async function ReadPage({
       dayIndex={progress.dayIndex + 1}
       minutes={progress.minutesPerSession}
       autoContinue={progress.autoContinue}
+      initialTranslation={initialTranslation}
       initialSegment={{
         text: segment.text,
         minutes: segment.minutes,

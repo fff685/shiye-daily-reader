@@ -1,6 +1,6 @@
 const ORIGIN = "https://shiye-daily-reader.vercel.app";
 
-export default {
+const worker = {
   async fetch(request) {
     const incoming = new URL(request.url);
     const target = new URL(`${incoming.pathname}${incoming.search}`, ORIGIN);
@@ -46,3 +46,5 @@ export default {
     return proxied;
   },
 };
+
+export default worker;

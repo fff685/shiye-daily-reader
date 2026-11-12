@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState, useTransition } from "react";
+import { Fragment, useEffect, useRef, useState, useTransition } from "react";
 import {
   completeSegmentAction,
   setAutoContinueAction,
   type CompleteReadingResult,
 } from "@/lib/actions/reading";
+import { translateSegmentAction } from "@/lib/actions/translation";
 import { isHeading, splitSegmentIntoParagraphs } from "@/lib/reader";
 
 type SegmentView = {
@@ -39,6 +40,7 @@ export function Reader({
   minutes,
   autoContinue: initialAutoContinue,
   initialSegment,
+  initialTranslation,
 }: {
   bookId: string;
   title: string;
@@ -48,6 +50,7 @@ export function Reader({
   minutes: number;
   autoContinue: boolean;
   initialSegment: SegmentView;
+  initialTranslation: string[] | null;
 }) {
   const [segment, setSegment] = useState(initialSegment);
   const [currentDay, setCurrentDay] = useState(dayIndex);
@@ -58,6 +61,14 @@ export function Reader({
   const [toast, setToast] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [fontSize, setFontSize] = useState(19);
+  const [translation, setTranslation] = useState<string[] | null>(
+    initialTranslation,
+  );
+  const [translationMode, setTranslationMode] = useState<
+    "original" | "translation" | "bilingual"
+  >("original");
+  const [translationLoading, setTranslationLoading] = useState(false);
+  const [translationError, setTranslationError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const lastActivity = useRef(0);
 
@@ -99,6 +110,9 @@ export function Reader({
     setResult(null);
     setShowModal(false);
     setError(null);
+    setTranslation(null);
+    setTranslationMode("original");
+    setTranslationError(null);
     window.scrollTo({ top: 0, behavior: "smooth" });
     if (quote) setToast(quote);
   }
@@ -156,6 +170,29 @@ export function Reader({
     startTransition(async () => {
       await setAutoContinueAction(bookId, next);
     });
+  }
+
+  async function ensureTranslation(mode: "translation" | "bilingual") {
+    if (language !== "en") return;
+    setTranslationMode(mode);
+    setTranslationError(null);
+    if (translation || translationLoading) return;
+
+    setTranslationLoading(true);
+    try {
+      const response = await translateSegmentAction({ bookId });
+      if (!response.ok) {
+        setTranslationError(response.error);
+        setTranslationMode("original");
+        return;
+      }
+      setTranslation(response.paragraphs);
+    } catch {
+      setTranslationError("翻译暂时没有成功，请稍后再试。");
+      setTranslationMode("original");
+    } finally {
+      setTranslationLoading(false);
+    }
   }
 
   const paragraphs = splitSegmentIntoParagraphs(segment.text);
@@ -250,17 +287,76 @@ export function Reader({
         <h1 className="reader-title">{title}</h1>
         <p className="reader-subtitle">读到这里，刚好是今天的分量。</p>
 
+        {language === "en" ? (
+          <>
+            <div className="reader-modes" role="group" aria-label="翻译模式">
+              <button
+                type="button"
+                data-active={translationMode === "original"}
+                onClick={() => setTranslationMode("original")}
+              >
+                原文
+              </button>
+              <button
+                type="button"
+                data-active={translationMode === "bilingual"}
+                onClick={() => ensureTranslation("bilingual")}
+                disabled={translationLoading}
+              >
+                中英对照
+              </button>
+              <button
+                type="button"
+                data-active={translationMode === "translation"}
+                onClick={() => ensureTranslation("translation")}
+                disabled={translationLoading}
+              >
+                只看中译
+              </button>
+              {translationLoading ? (
+                <span className="reader-mode-status">正在生成中译…</span>
+              ) : null}
+            </div>
+            {translationMode !== "original" && translation ? (
+              <p className="translation-note">
+                由 DeepSeek 生成的机器翻译，仅供阅读参考。
+              </p>
+            ) : null}
+            {translationError ? (
+              <p className="form-error" style={{ marginBottom: 18 }} role="alert">
+                {translationError}
+              </p>
+            ) : null}
+          </>
+        ) : null}
+
         <article
           className={`reader-content ${language === "en" ? "reader-content-en" : ""}`}
           style={{ "--reader-font-size": `${fontSize}px` } as React.CSSProperties}
         >
-          {paragraphs.map((paragraph, index) =>
-            isHeading(paragraph) ? (
-              <h2 key={`${index}-${paragraph.slice(0, 12)}`}>{paragraph}</h2>
-            ) : (
-              <p key={`${index}-${paragraph.slice(0, 12)}`}>{paragraph}</p>
-            ),
-          )}
+          {translationMode === "translation" && translation
+            ? translation.map((paragraph, index) => (
+                <p
+                  className="reader-translation reader-translation-only"
+                  key={`zh-${index}-${paragraph.slice(0, 12)}`}
+                >
+                  {paragraph}
+                </p>
+              ))
+            : paragraphs.map((paragraph, index) => (
+                <Fragment key={`${index}-${paragraph.slice(0, 12)}`}>
+                  {isHeading(paragraph) ? (
+                    <h2>{paragraph}</h2>
+                  ) : (
+                    <p>{paragraph}</p>
+                  )}
+                  {translationMode === "bilingual" && translation?.[index] ? (
+                    <p className="reader-translation">
+                      {translation[index]}
+                    </p>
+                  ) : null}
+                </Fragment>
+              ))}
         </article>
 
         <div className="reader-end-mark">

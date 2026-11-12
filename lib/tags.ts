@@ -170,9 +170,24 @@ const ZH_CURATED: Array<{
     popularity: 6700,
   },
   {
-    match: /吶喊|呐喊|阿Q|狂人日記|狂人日记/,
+    match: /徬徨|彷徨/,
     tags: ["现代文学", "短篇", "社会", "批判"],
-    popularity: 8200,
+    popularity: 8400,
+  },
+  {
+    match: /野草/,
+    tags: ["现代文学", "散文诗", "哲思"],
+    popularity: 8300,
+  },
+  {
+    match: /阿Q正傳|阿Q正传/,
+    tags: ["现代文学", "讽刺", "国民性", "短篇"],
+    popularity: 8450,
+  },
+  {
+    match: /吶喊|呐喊|狂人日記|狂人日记/,
+    tags: ["现代文学", "短篇", "社会", "批判"],
+    popularity: 8600,
   },
   {
     match: /朝花夕拾/,

@@ -25,7 +25,7 @@ function formatDate(date: Date): string {
 export default async function MePage() {
   const user = await requireUser("/me");
 
-  const [stats, progresses, sessions] = await Promise.all([
+  const [stats, progresses, sessions, imports] = await Promise.all([
     getUserStats(user.id),
     prisma.readingProgress.findMany({
       where: { userId: user.id },
@@ -38,6 +38,12 @@ export default async function MePage() {
       orderBy: { completedAt: "desc" },
       take: 12,
       include: { book: { select: { id: true, title: true, tags: true } } },
+    }),
+    prisma.book.findMany({
+      where: { ownerId: user.id },
+      orderBy: { createdAt: "desc" },
+      take: 4,
+      select: bookSummarySelect,
     }),
   ]);
 
@@ -174,6 +180,54 @@ export default async function MePage() {
                   </Link>
                 </div>
               </div>
+            )}
+          </section>
+
+          <section className="profile-card card">
+            <div
+              style={{
+                display: "flex",
+                alignItems: "flex-start",
+                justifyContent: "space-between",
+                gap: 16,
+              }}
+            >
+              <div>
+                <h2>我的导入</h2>
+                <p>私人 TXT 书籍，只有你自己能看到。</p>
+              </div>
+              <Link href="/import" className="section-link">
+                导入新书 →
+              </Link>
+            </div>
+            {imports.length ? (
+              <div className="progress-list">
+                {imports.map((book) => (
+                  <div className="progress-item" key={book.id}>
+                    <BookCover
+                      title={book.title}
+                      author={book.author}
+                      size="sm"
+                    />
+                    <div style={{ minWidth: 0 }}>
+                      <h3>{book.title}</h3>
+                      <p>{book.author || "佚名"} · 私人书库</p>
+                    </div>
+                    <div className="progress-item-side">
+                      <Link
+                        href={`/books/${book.id}`}
+                        style={{ color: "var(--primary-strong)", fontWeight: 600 }}
+                      >
+                        打开
+                      </Link>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p style={{ marginTop: 18 }}>
+                还没有导入的书。可以导入自己拥有的 TXT 电子书。
+              </p>
             )}
           </section>
 

@@ -21,6 +21,9 @@
 | 用户画像 | 聚合最近阅读的标签权重；个人页展示标签画像 |
 | 注册登录、数据不丢 | 邮箱 + 密码；bcrypt；HttpOnly JWT Cookie；Postgres/SQLite 持久化 |
 | 蓝白配色、简约高级 | 蓝白设计系统、衬线正文、生成式书封、响应式布局 |
+| 英文书中文翻译 | 按阅读段用 DeepSeek 生成，支持原文 / 中英对照 / 只看中译，并缓存译文 |
+| 近现代中文作品 | 公版鲁迅作品进入公共书库；《明朝那些事儿》等版权作品通过私人 TXT 导入 |
+| 私人书库 | 用户导入自己的 TXT，仅自己可见，不进入公共推荐与搜索 |
 
 ## 3. 关键产品决策
 
@@ -73,10 +76,13 @@
 - [x] Vercel 生产部署（https://shiye-daily-reader.vercel.app）
 - [x] Cloudflare Pages 国内可访问代理（https://shiye-proxy.pages.dev）
 - [x] GitHub 独立仓库（https://github.com/fff685/shiye-daily-reader）
+- [x] 英文书按段中译 / 私人 TXT 导入 / 鲁迅公版作品
+- [ ] 配置 `DEEPSEEK_API_KEY` 后才能实际生成英文中译
+- [ ] 预生成精选英文书完整中译（需要 API Key，运行 `translate:featured`）
 
 ## 6. 仍需确认 / 输入
 
-1. **Neon 连接串**：`DATABASE_URL`（pooled）和 `DIRECT_URL`（direct），用于迁移与部署。
-2. **Vercel 账号/项目**：当前环境没有登录，需要用户提供部署权限或在 Vercel 控制台导入仓库。
-3. **正式书名**：当前工作名为「拾页」，可以改。
-4. **是否开放游客模式**：当前未登录可浏览，但不能保存进度；如需游客试读后合并，可作为下一阶段。
+1. **DeepSeek API Key**：英文中译需要 `DEEPSEEK_API_KEY`；未配置时页面会提示未启用。
+2. **正式书名**：当前工作名为「拾页」，可以改。
+3. **更多公版近现代中文书源**：老舍、萧红等作品在部分书源中不可得，需要确认可用的公版文本来源。
+4. **EPUB 导入**：当前先支持 TXT，EPUB 需要继续接入解析依赖。
